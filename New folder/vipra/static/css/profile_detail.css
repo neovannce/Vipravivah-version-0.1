@@ -141,3 +141,50 @@ h1 {
         font-size: 1.6rem;
     }
 }
+
+/* Theme Toggle Button */
+.theme-toggle {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    margin-left: 1rem;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.2);
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+body.dark-mode .navbar {
+    background: #1f1f1f;
+}
+
+body.dark-mode .profile-info p {
+    background: #1e1e1e;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .social-media-links {
+    background: #1e1e1e;
+}
+
+body.dark-mode h1,
+body.dark-mode .social-media-links h2 {
+    color: #f1c40f;
+}
+
+body.dark-mode .theme-toggle {
+    color: #f1f1f1;
+}
+
+body.dark-mode .footer {
+    background: #1c1c1c;
+}

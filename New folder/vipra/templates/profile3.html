@@ -13,10 +13,13 @@
         <div class="progress-steps">
             <div class="step">1</div>
             <div class="step">2</div>
-            <div class="step active">3</div>
-            <div class="step">4</div>
+            <div class="step ">3</div>
+            <div class="step active">4</div>
             <div class="step">5</div>
         </div>
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Theme">
+            <i class="fas fa-moon"></i>
+        </button>
     </div>
 
     <div class="profile-container">
@@ -175,6 +178,43 @@
         document.getElementById("back-btn").addEventListener("click", function () {
             window.location.href = "{{ url_for('profile2') }}";
         });
+    </script>
+    <script>
+        // Add the theme toggle script
+        const toggleBtn = document.getElementById('theme-toggle');
+        const icon = toggleBtn?.querySelector('i');
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                if (icon) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                }
+            } else {
+                document.body.classList.remove('dark-mode');
+                if (icon) {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                }
+            }
+        }
+
+        // Load theme on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            applyTheme(savedTheme);
+        });
+
+        // Handle toggle button
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                const isDark = document.body.classList.contains('dark-mode');
+                const newTheme = isDark ? 'light' : 'dark';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            });
+        }
     </script>
 </body>
 </html>

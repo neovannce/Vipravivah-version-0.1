@@ -211,6 +211,7 @@ def profile():
         return redirect(url_for('profile2'))  # next page (to be added later)
 
     return render_template('profile.html')
+
 @app.route('/profile2', methods=['GET', 'POST'])
 def profile2():
     if request.method == 'POST':
@@ -219,6 +220,35 @@ def profile2():
             flash("Please login to continue", "error")
             return redirect(url_for('login_register'))
 
+        # Fetch temporary address fields
+        temp_address = request.form.get('temp_address', '')
+        temp_city = request.form.get('temp_city', '')
+        temp_district = request.form.get('temp_district', '')
+        temp_state = request.form.get('temp_state', '')
+        temp_pincode = request.form.get('temp_pincode', '')
+
+        # Check if permanent address is same as temporary
+        same_as_temp = request.form.get('same_as_temp')
+        if same_as_temp:
+            perm_address = temp_address
+            perm_city = temp_city
+            perm_district = temp_district
+            perm_state = temp_state
+            perm_pincode = temp_pincode
+        else:
+            # Fetch permanent address fields safely
+            perm_address = request.form.get('perm_address', '')
+            perm_city = request.form.get('perm_city', '')
+            perm_district = request.form.get('perm_district', '')
+            perm_state = request.form.get('perm_state', '')
+            perm_pincode = request.form.get('perm_pincode', '')
+
+        # Other fields
+        lives_with_family = request.form.get('lives_with_family', '')
+        marital_status = request.form.get('marital_status', '')
+        diet = ','.join(request.form.getlist('diet'))
+
+        # Insert into DB
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("""
@@ -229,23 +259,14 @@ def profile2():
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             user_id,
-            request.form['temp_address'],
-            request.form['temp_city'],
-            request.form['temp_district'],
-            request.form['temp_state'],
-            request.form['temp_pincode'],
-            request.form['perm_address'],
-            request.form['perm_city'],
-            request.form['perm_district'],
-            request.form['perm_state'],
-            request.form['perm_pincode'],
-            request.form['lives_with_family'],
-            request.form['marital_status'],
-            ','.join(request.form.getlist('diet'))  # supports multiple checkbox values
+            temp_address, temp_city, temp_district, temp_state, temp_pincode,
+            perm_address, perm_city, perm_district, perm_state, perm_pincode,
+            lives_with_family, marital_status, diet
         ))
         conn.commit()
         cursor.close()
         conn.close()
+
         return redirect(url_for('profile3'))
 
     return render_template('profile2.html')
@@ -332,31 +353,39 @@ def success():
 
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-
     profile_data = {}
 
-    # Fetch each table's data
-    cursor.execute("SELECT * FROM users_preferences WHERE user_id = %s", (user_id,))
-    profile_data['preferences'] = cursor.fetchone()
+    try:
+        cursor.execute("SELECT * FROM users_preferences WHERE user_id = %s", (user_id,))
+        preferences = cursor.fetchall()
+        profile_data['preferences'] = preferences[0] if preferences else None
 
-    cursor.execute("SELECT * FROM profiles_basic_info WHERE user_id = %s", (user_id,))
-    profile_data['basic_info'] = cursor.fetchone()
+        cursor.execute("SELECT * FROM profiles_basic_info WHERE user_id = %s", (user_id,))
+        basic_info = cursor.fetchall()
+        profile_data['basic_info'] = basic_info[0] if basic_info else None
 
-    cursor.execute("SELECT * FROM addresses WHERE user_id = %s", (user_id,))
-    profile_data['address'] = cursor.fetchone()
+        cursor.execute("SELECT * FROM addresses WHERE user_id = %s", (user_id,))
+        address = cursor.fetchall()
+        profile_data['address'] = address[0] if address else None
 
-    cursor.execute("SELECT * FROM education_career WHERE user_id = %s", (user_id,))
-    profile_data['career'] = cursor.fetchone()
+        cursor.execute("SELECT * FROM education_career WHERE user_id = %s", (user_id,))
+        career = cursor.fetchall()
+        profile_data['career'] = career[0] if career else None
 
-    cursor.execute("SELECT * FROM identity_verification WHERE user_id = %s", (user_id,))
-    profile_data['identity'] = cursor.fetchone()
+        cursor.execute("SELECT * FROM identity_verification WHERE user_id = %s", (user_id,))
+        identity = cursor.fetchall()
+        profile_data['identity'] = identity[0] if identity else None
 
-    cursor.close()
-    conn.close()
+    except Exception as e:
+        print("Error fetching profile data:", e)
+        flash("There was a problem loading your profile.", "error")
+        return redirect(url_for('success'))
+
+    finally:
+        cursor.close()
+        conn.close()
 
     return render_template('success.html', profile_data=profile_data)
-
-
 
 @app.route('/profile_success')
 def profile_success():
@@ -540,70 +569,6 @@ def myprofile():
         return redirect(url_for('index'))
 
     return render_template('myprofile.html', profile=profile)
-
-@app.route('/edit_profile', methods=['GET', 'POST'])
-def edit_profile():
-    if not session.get('user_id'):
-        flash("Please login to continue", "error")
-        return redirect(url_for('login_register'))
-
-    user_id = session['user_id']
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    if request.method == 'POST':
-        # Update basic info
-        cursor.execute("""
-            UPDATE profiles_basic_info 
-            SET profile_for = %s, gender = %s, first_name = %s, middle_name = %s, last_name = %s,
-                father_name = %s, mother_name = %s, dob = %s, age = %s, religion = %s, gotra = %s,
-                mother_tongue = %s, height = %s, email = %s, phone = %s
-            WHERE user_id = %s
-        """, (
-            request.form['profile_for'], request.form['gender'], request.form['first_name'],
-            request.form.get('middle_name', ''), request.form['last_name'], request.form['father_name'],
-            request.form['mother_name'], request.form['dob'], request.form['age'], request.form['religion'],
-            request.form['gotra'], request.form['mother_tongue'], request.form['height'],
-            request.form['email'], request.form['phone'], user_id
-        ))
-
-        # Update address info
-        cursor.execute("""
-            UPDATE addresses 
-            SET temp_address = %s, temp_city = %s, temp_district = %s, temp_state = %s, temp_pincode = %s,
-                perm_address = %s, perm_city = %s, perm_district = %s, perm_state = %s, perm_pincode = %s,
-                lives_with_family = %s, marital_status = %s, diet = %s
-            WHERE user_id = %s
-        """, (
-            request.form['temp_address'], request.form['temp_city'], request.form['temp_district'],
-            request.form['temp_state'], request.form['temp_pincode'], request.form['perm_address'],
-            request.form['perm_city'], request.form['perm_district'], request.form['perm_state'],
-            request.form['perm_pincode'], request.form['lives_with_family'], request.form['marital_status'],
-            ','.join(request.form.getlist('diet')), user_id
-        ))
-
-        conn.commit()
-        flash("Profile updated successfully!", "success")
-        return redirect(url_for('success'))
-
-    # Fetch existing profile data
-    cursor.execute("SELECT * FROM profiles_basic_info WHERE user_id = %s", (user_id,))
-    basic_info = cursor.fetchone()
-    
-    cursor.execute("SELECT * FROM addresses WHERE user_id = %s", (user_id,))
-    address_info = cursor.fetchone()
-    
-    cursor.close()
-    conn.close()
-
-    if not basic_info:
-        flash("Profile not found", "error")
-        return redirect(url_for('profile'))
-
-    return render_template('profile.html', 
-                         basic_info=basic_info,
-                         address_info=address_info,
-                         is_edit=True)
 
 
 

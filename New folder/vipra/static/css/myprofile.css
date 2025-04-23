@@ -146,10 +146,12 @@ body {
 }
 
 .profile-picture {
-    width: 200px;
-    height: 200px;
+    width: 180px;
+    height: 180px;
     border-radius: 50%;
     object-fit: cover;
+    object-position: top;
+    background-color: #f0f0f0;
     border: 4px solid var(--primary-color);
     transition: transform var(--transition-speed) ease;
 }
@@ -300,3 +302,69 @@ body {
         flex-direction: column;
     }
 }
+.profile-photo {
+    max-width: 150px;
+    max-height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #4CAF50;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 10px;
+}
+.profile-image-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    margin-left: 1rem;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.2);
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+body.dark-mode .navbar {
+    background: #1f1f1f;
+}
+
+body.dark-mode .profile-card {
+    background: #1e1e1e;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .profile-header h1 {
+    color: #f1c40f;
+}
+
+body.dark-mode .profile-section h2 {
+    color: #f1c40f;
+}
+
+body.dark-mode .info-item .label {
+    color: #cccccc;
+}
+
+body.dark-mode .theme-toggle {
+    color: #f1f1f1;
+}
+
+body.dark-mode .site-footer {
+    background: #1c1c1c;
+}
+
